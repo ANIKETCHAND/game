@@ -78,7 +78,7 @@ export class ThreeSceneManager {
     // 4. Lighting
     this.setupLighting();
 
-    // 5. Arena Environment
+    // 5. Arena Environment & 3D Combat Platforms
     this.setupArena();
 
     // 6. Holographic Telegraph Portals
@@ -90,8 +90,16 @@ export class ThreeSceneManager {
     this.scene.add(this.playerDuelist.group);
     this.scene.add(this.rivalDuelist.group);
 
-    // 8. 3D Spark Particle System
+    // 8. 3D Spark Particle System & Ambient Cyber Embers
     this.setupParticles();
+    this.setupAmbientEmbers();
+
+    // 9. Interactive Mouse Parallax tracking
+    this.targetCameraX = 0;
+    this.targetCameraY = 3.2;
+    this.currentCameraX = 0;
+    this.currentCameraY = 3.2;
+    this.setupMouseParallax();
 
     // Game state tracking
     this.gameState = 'LANDING';
@@ -102,6 +110,18 @@ export class ThreeSceneManager {
 
     this.applyTheme();
     this.isInitialized = true;
+  }
+
+  setupMouseParallax() {
+    if (typeof window === 'undefined') return;
+    this.onMouseMove = (e) => {
+      if (this.reduceMotion) return;
+      const nx = (e.clientX / window.innerWidth) * 2 - 1;
+      const ny = (e.clientY / window.innerHeight) * 2 - 1;
+      this.targetCameraX = nx * 0.9;
+      this.targetCameraY = 3.2 - ny * 0.45;
+    };
+    window.addEventListener('mousemove', this.onMouseMove);
   }
 
   setupLighting() {
@@ -170,6 +190,85 @@ export class ThreeSceneManager {
     const rail = new THREE.Mesh(railGeo, railMat);
     rail.position.set(0, 0.03, -3);
     this.scene.add(rail);
+
+    // 3D Battle Podiums / Combat Platforms for Player & Rival
+    this.setupCombatPlatforms();
+  }
+
+  setupCombatPlatforms() {
+    const createPlatform = (xPos, isPlayer) => {
+      const platformGroup = new THREE.Group();
+      platformGroup.position.set(xPos, 0, 0);
+
+      // Base cylinder podium
+      const podiumGeo = new THREE.CylinderGeometry(1.65, 1.85, 0.22, 32);
+      const podiumMat = new THREE.MeshStandardMaterial({
+        color: isPlayer ? 0x0f172a : 0x181124,
+        roughness: 0.35,
+        metalness: 0.8
+      });
+      const podium = new THREE.Mesh(podiumGeo, podiumMat);
+      podium.position.y = 0.11;
+      podium.receiveShadow = true;
+      platformGroup.add(podium);
+
+      // Glowing Outer Bevel Neon Ring
+      const neonColor = isPlayer ? 0x00e5ff : 0xff2a55;
+      const ringGeo = new THREE.TorusGeometry(1.68, 0.035, 12, 36);
+      ringGeo.rotateX(Math.PI / 2);
+      const ringMat = new THREE.MeshBasicMaterial({
+        color: neonColor,
+        transparent: true,
+        opacity: 0.85
+      });
+      const neonRing = new THREE.Mesh(ringGeo, ringMat);
+      neonRing.position.y = 0.225;
+      platformGroup.add(neonRing);
+
+      // Inner Circuit Decal Ring
+      const innerRingGeo = new THREE.RingGeometry(0.8, 1.25, 24);
+      innerRingGeo.rotateX(-Math.PI / 2);
+      const innerRingMat = new THREE.MeshBasicMaterial({
+        color: neonColor,
+        transparent: true,
+        opacity: 0.22,
+        side: THREE.DoubleSide
+      });
+      const innerRing = new THREE.Mesh(innerRingGeo, innerRingMat);
+      innerRing.position.y = 0.222;
+      platformGroup.add(innerRing);
+
+      this.scene.add(platformGroup);
+      return platformGroup;
+    };
+
+    this.playerPlatform = createPlatform(-4.2, true);
+    this.rivalPlatform = createPlatform(4.2, false);
+  }
+
+  setupAmbientEmbers() {
+    const emberCount = 35;
+    const emberGeo = new THREE.BufferGeometry();
+    const positions = new Float32Array(emberCount * 3);
+
+    for (let i = 0; i < emberCount; i++) {
+      positions[i * 3] = (Math.random() - 0.5) * 16;
+      positions[i * 3 + 1] = 0.5 + Math.random() * 4.5;
+      positions[i * 3 + 2] = (Math.random() - 0.5) * 8;
+    }
+
+    emberGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+
+    const emberMat = new THREE.PointsMaterial({
+      color: 0x38bdf8,
+      size: 0.12,
+      transparent: true,
+      opacity: 0.45,
+      blending: THREE.AdditiveBlending
+    });
+
+    this.ambientEmbers = new THREE.Points(emberGeo, emberMat);
+    this.scene.add(this.ambientEmbers);
   }
 
   setupTelegraphs() {
@@ -484,18 +583,34 @@ export class ThreeSceneManager {
       this.particles.geometry.attributes.position.needsUpdate = true;
     }
 
-    // 4. Fade Clash Light
+    // 4. Animate Ambient Cyber Embers
+    if (this.ambientEmbers) {
+      const emberPos = this.ambientEmbers.geometry.attributes.position.array;
+      for (let i = 0; i < emberPos.length / 3; i++) {
+        emberPos[i * 3 + 1] += dt * 0.25; // gently rise
+        if (emberPos[i * 3 + 1] > 5.0) {
+          emberPos[i * 3 + 1] = 0.5;
+        }
+      }
+      this.ambientEmbers.geometry.attributes.position.needsUpdate = true;
+    }
+
+    // 5. Fade Clash Light
     if (this.clashLight && this.clashLight.intensity > 0) {
       this.clashLight.intensity = Math.max(0, this.clashLight.intensity - dt * 6.0);
     }
 
-    // 5. Camera Animation (Breath & Shake)
+    // 6. Camera Animation (Breath, Smooth Parallax Lerp & Shake)
     if (this.reduceMotion) {
       this.camera.position.copy(this.baseCameraPos);
     } else {
+      // Smooth lerp toward mouse target
+      this.currentCameraX += (this.targetCameraX - this.currentCameraX) * dt * 3.5;
+      this.currentCameraY += (this.targetCameraY - this.currentCameraY) * dt * 3.5;
+
       // Subtle cinematic breathing
-      const breathX = Math.sin(this.cameraTime * 0.8) * 0.15;
-      const breathY = Math.cos(this.cameraTime * 1.1) * 0.1;
+      const breathX = Math.sin(this.cameraTime * 0.8) * 0.12;
+      const breathY = Math.cos(this.cameraTime * 1.1) * 0.08;
 
       // Shake decay
       let shakeX = 0;
@@ -506,13 +621,13 @@ export class ThreeSceneManager {
         this.cameraShake = Math.max(0, this.cameraShake - dt * 2.5);
       }
 
-      this.camera.position.x = this.baseCameraPos.x + breathX + shakeX;
-      this.camera.position.y = this.baseCameraPos.y + breathY + shakeY;
+      this.camera.position.x = this.baseCameraPos.x + this.currentCameraX + breathX + shakeX;
+      this.camera.position.y = this.currentCameraY + breathY + shakeY;
       this.camera.position.z = this.baseCameraPos.z;
     }
     this.camera.lookAt(this.cameraLookAt);
 
-    // 6. Render Scene
+    // 7. Render Scene
     this.renderer.render(this.scene, this.camera);
   }
 
@@ -522,6 +637,9 @@ export class ThreeSceneManager {
   }
 
   dispose() {
+    if (typeof window !== 'undefined' && this.onMouseMove) {
+      window.removeEventListener('mousemove', this.onMouseMove);
+    }
     if (this.renderer && this.renderer.domElement && this.renderer.domElement.parentNode) {
       this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
     }
