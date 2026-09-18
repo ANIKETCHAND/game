@@ -12,9 +12,11 @@ export class SoundEngine {
 
     this.masterVolume = 0.8;
     this.sfxVolume = 0.8;
-    this.musicVolume = 0.6;
+    this.musicVolume = 0.20; // Default low tone for background music
     this.isMuted = false;
 
+    this.bgmAudio = null;
+    this.isBgmPlaying = false;
     this.tensionInterval = null;
   }
 
@@ -48,6 +50,55 @@ export class SoundEngine {
     if (this.ctx && this.ctx.state === 'suspended') {
       this.ctx.resume();
     }
+    this.initBGM();
+  }
+
+  initBGM() {
+    if (this.bgmAudio || typeof Audio === 'undefined') return;
+    try {
+      this.bgmAudio = new Audio('assets/bgm.mp3');
+      this.bgmAudio.loop = true;
+      this.bgmAudio.preload = 'auto';
+      this.updateBGMVolume();
+    } catch (e) {
+      console.warn('Could not initialize BGM audio element:', e);
+    }
+  }
+
+  startBGM() {
+    this.initBGM();
+    if (!this.bgmAudio) return;
+    this.isBgmPlaying = true;
+    this.updateBGMVolume();
+    const p = this.bgmAudio.play();
+    if (p !== undefined) {
+      p.catch(() => {
+        // Autoplay pending user interaction
+      });
+    }
+  }
+
+  pauseBGM() {
+    this.isBgmPlaying = false;
+    if (this.bgmAudio) {
+      this.bgmAudio.pause();
+    }
+  }
+
+  stopBGM() {
+    this.isBgmPlaying = false;
+    if (this.bgmAudio) {
+      this.bgmAudio.pause();
+      this.bgmAudio.currentTime = 0;
+    }
+  }
+
+  setMusicVolume(val) {
+    this.musicVolume = Math.max(0, Math.min(1, val));
+    if (this.musicGain && this.ctx) {
+      this.musicGain.gain.setValueAtTime(this.musicVolume, this.ctx.currentTime);
+    }
+    this.updateBGMVolume();
   }
 
   setMasterVolume(val) {
@@ -55,6 +106,7 @@ export class SoundEngine {
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.masterVolume, this.ctx.currentTime);
     }
+    this.updateBGMVolume();
   }
 
   setSfxVolume(val) {
@@ -64,11 +116,19 @@ export class SoundEngine {
     }
   }
 
+  updateBGMVolume() {
+    if (this.bgmAudio) {
+      const vol = this.isMuted ? 0 : (this.masterVolume * this.musicVolume);
+      this.bgmAudio.volume = Math.max(0, Math.min(1, vol));
+    }
+  }
+
   toggleMute() {
     this.isMuted = !this.isMuted;
     if (this.masterGain && this.ctx) {
       this.masterGain.gain.setValueAtTime(this.isMuted ? 0 : this.masterVolume, this.ctx.currentTime);
     }
+    this.updateBGMVolume();
     return this.isMuted;
   }
 

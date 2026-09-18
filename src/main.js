@@ -74,6 +74,7 @@ class EchoDuelApp {
     this.toggleTts = document.getElementById('toggle-tts');
     this.sliderVolume = document.getElementById('slider-volume');
     this.sliderSfx = document.getElementById('slider-sfx');
+    this.sliderMusic = document.getElementById('slider-music');
     this.toggleSwitchMode = document.getElementById('toggle-switch-mode');
     this.sliderScanSpeed = document.getElementById('slider-scan-speed');
     this.scanSpeedLabel = document.getElementById('scan-speed-label');
@@ -332,6 +333,7 @@ class EchoDuelApp {
         this.btnPrimary.setAttribute('aria-label', 'Start Match');
         this.updateBanner('🎧 Ready to duel. Press START MATCH or Spacebar.', '');
       } else if (current === GameStates.PLAYING) {
+        this.soundEngine.startBGM();
         if (this.switchController.enabled) {
           this.btnPrimary.textContent = '⚡ STRIKE SCANNED LANE (Tap / Space)';
           this.btnPrimary.setAttribute('aria-label', 'Strike scanned lane');
@@ -451,6 +453,7 @@ class EchoDuelApp {
     }
 
     this.stateMachine.setState(GameStates.MENU);
+    this.soundEngine.startBGM();
     this.announcer.announce(`Welcome ${this.playerName}. Match ready. Press Start Match or Spacebar to duel.`);
     if (this.btnPrimary) this.btnPrimary.focus();
   }
@@ -749,6 +752,13 @@ class EchoDuelApp {
       const val = parseFloat(e.target.value) / 100;
       this.soundEngine.setSfxVolume(val);
     });
+
+    if (this.sliderMusic) {
+      this.sliderMusic.addEventListener('input', (e) => {
+        const val = parseFloat(e.target.value) / 100;
+        this.soundEngine.setMusicVolume(val);
+      });
+    }
 
     this.toggleSwitchMode.addEventListener('change', (e) => {
       const enabled = e.target.checked;
