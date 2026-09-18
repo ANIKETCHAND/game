@@ -170,6 +170,7 @@ class EchoDuelApp {
 
   wireEngineEvents() {
     this.gameEngine.onTensionStart = ({ round, playerScore, opponentScore }) => {
+      this.clearAttackHighlights();
       this.soundEngine.startTensionPulse();
       this.updateBanner('⚡ READY... HOLD... ⚡', 'active-tension');
       this.announcer.announce(`Round ${round}. Ready... hold.`, { rate: 1.2 });
@@ -187,6 +188,7 @@ class EchoDuelApp {
 
     this.gameEngine.onSignalTrigger = ({ direction }) => {
       this.soundEngine.playDirectionCue(direction);
+      this.highlightAttackTarget(direction);
       let dirText = 'CENTER';
       let iconClass = 'active-cue-center';
       if (direction === SignalDirections.LEFT) {
@@ -209,6 +211,7 @@ class EchoDuelApp {
     };
 
     this.gameEngine.onRoundResolved = (result) => {
+      this.clearAttackHighlights();
       this.soundEngine.stopTensionPulse();
       if (this.switchController.enabled) {
         this.switchController.stop();
@@ -884,6 +887,25 @@ class EchoDuelApp {
     if (dir === SignalDirections.LEFT) this.btnLeft.classList.add('active-key');
     if (dir === SignalDirections.CENTER) this.btnCenter.classList.add('active-key');
     if (dir === SignalDirections.RIGHT) this.btnRight.classList.add('active-key');
+  }
+
+  highlightAttackTarget(direction) {
+    this.clearAttackHighlights();
+    if (direction === SignalDirections.LEFT && this.btnLeft) {
+      this.btnLeft.classList.add('btn-target-active');
+    } else if (direction === SignalDirections.CENTER && this.btnCenter) {
+      this.btnCenter.classList.add('btn-target-active');
+    } else if (direction === SignalDirections.RIGHT && this.btnRight) {
+      this.btnRight.classList.add('btn-target-active');
+    }
+  }
+
+  clearAttackHighlights() {
+    [this.btnLeft, this.btnCenter, this.btnRight].forEach(b => {
+      if (b) {
+        b.classList.remove('btn-target-active');
+      }
+    });
   }
 
   highlightButton(btn) {
