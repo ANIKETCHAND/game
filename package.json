@@ -1,0 +1,19 @@
+{
+  "name": "echo-duel",
+  "version": "1.0.0",
+  "description": "Accessible 1v1 reaction showdown hackathon game",
+  "type": "module",
+  "scripts": {
+    "test": "node tests/test-suite.js",
+    "start": "python server.py"
+  },
+  "keywords": [
+    "accessibility",
+    "game",
+    "web-audio",
+    "screen-reader",
+    "switch-control"
+  ],
+  "author": "",
+  "license": "MIT"
+}

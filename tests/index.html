@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Echo Duel - Test Suite Runner</title>
+  <style>
+    body {
+      background: #0f172a;
+      color: #f8fafc;
+      font-family: system-ui, -apple-system, sans-serif;
+      padding: 2rem;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1 { color: #38bdf8; }
+    #test-log {
+      background: #020617;
+      padding: 1rem;
+      border-radius: 8px;
+      border: 1px solid #334155;
+      font-family: monospace;
+      white-space: pre-wrap;
+      font-size: 0.95rem;
+      max-height: 500px;
+      overflow-y: auto;
+    }
+    .pass { color: #22c55e; }
+    .fail { color: #ef4444; font-weight: bold; }
+    .header { color: #fbbf24; font-weight: bold; }
+    .btn {
+      background: #38bdf8;
+      color: #020617;
+      border: none;
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      margin-bottom: 1rem;
+    }
+    .btn:hover { filter: brightness(1.1); }
+  </style>
+</head>
+<body>
+  <h1>⚡ Echo Duel Test Runner</h1>
+  <p>Runs automated unit, state machine, and accessibility regression tests.</p>
+  <button id="run-btn" class="btn">Run All Tests</button>
+  <div id="test-log">Click "Run All Tests" to begin.</div>
+
+  <script type="module">
+    import { runTests } from './test-suite.js';
+    const logEl = document.getElementById('test-log');
+    const runBtn = document.getElementById('run-btn');
+    runBtn.addEventListener('click', () => {
+      logEl.innerHTML = '';
+      runTests();
+    });
+    // Auto-run on page load
+    runTests();
+  </script>
+</body>
+</html>

@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Echo Duel - Accessible Audio & Visual Reaction Showdown</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+</head>
+<body>
+  <!-- Skip link for keyboard/screen reader users -->
+  <a href="#main-game-area" class="skip-link">Skip to Game Duel Arena</a>
+
+  <div class="app-container">
+    <!-- Header with game title and quick accessibility toggles -->
+    <header class="app-header" role="banner">
+      <div class="brand">
+        <h1 class="game-title">⚡ ECHO DUEL</h1>
+        <p class="game-tagline">Accessible 1v1 Reaction Showdown</p>
+      </div>
+
+      <div class="header-actions">
+        <button id="btn-sound-toggle" class="btn-icon" aria-label="Toggle Sound" title="Toggle Sound (M)">
+          <span class="icon-label" id="sound-icon-text">🔊 Sound: ON</span>
+        </button>
+        <button id="btn-contrast-toggle" class="btn-icon" aria-label="Toggle High Contrast" title="Toggle High Contrast Mode">
+          <span class="icon-label" id="contrast-icon-text">👁 Contrast: NORMAL</span>
+        </button>
+        <button id="btn-nav-leaderboard" class="btn-secondary" aria-label="View Points Table">
+          🏆 Points Table
+        </button>
+        <button id="btn-settings" class="btn-secondary" aria-expanded="false" aria-controls="settings-panel">
+          ⚙ Settings & Access
+        </button>
+      </div>
+    </header>
+
+    <!-- Accessible Live Sensory Feedback Banner (Crucial for Deaf & Non-Hearing Players) -->
+    <section class="sensory-cue-banner" id="sensory-cue-banner" aria-live="assertive" aria-atomic="true">
+      <div class="cue-indicator" id="cue-display-text">
+        <span class="cue-icon">🎧</span>
+        <span class="cue-message">Welcome to Echo Duel. Press START MATCH or Spacebar to begin.</span>
+      </div>
+    </section>
+
+    <!-- Main Game Area -->
+    <main id="main-game-area" class="main-content" tabindex="-1">
+      <!-- Top HUD Scoreboard -->
+      <div class="scoreboard-bar" role="region" aria-label="Scoreboard">
+        <div class="score-card player-card" id="hud-player-score">
+          <img src="assets/jack_player_thumb.png" alt="Player Jack-Jack Avatar" class="hud-avatar-thumb">
+          <div class="score-meta">
+            <span class="player-name" id="hud-player-label">JACK-JACK</span>
+            <span class="score-digit" id="score-val-player">0</span>
+          </div>
+        </div>
+        <div class="round-badge" id="hud-round-indicator">
+          <span class="round-text" id="round-val-text">ROUND 1</span>
+          <span class="target-text" id="target-val-text">FIRST TO 3</span>
+        </div>
+        <div class="score-card opponent-card" id="hud-opponent-score">
+          <img src="assets/jack_rival_thumb.png" alt="Rival Jack-Jack Avatar" class="hud-avatar-thumb">
+          <div class="score-meta">
+            <span class="player-name">RIVAL JACK</span>
+            <span class="score-digit" id="score-val-opponent">0</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Canvas Arena -->
+      <div class="canvas-wrapper" id="canvas-container">
+        <canvas id="game-canvas" width="800" height="460" role="img" aria-label="Echo Duel battle arena showing duelists and directional targets"></canvas>
+      </div>
+
+      <!-- On-Screen Accessible Touch & Switch Controls -->
+      <section class="controls-panel" aria-label="Duel Controls">
+        <div class="touch-strike-buttons">
+          <button id="btn-strike-left" class="btn-strike btn-left" aria-label="Strike Left (Left Arrow or A key)">
+            <span class="strike-icon">◄</span>
+            <span class="strike-text">LEFT</span>
+            <span class="strike-hotkey">[A / ◄]</span>
+          </button>
+          <button id="btn-strike-center" class="btn-strike btn-center" aria-label="Strike Center (Up Arrow, W, or Spacebar)">
+            <span class="strike-icon">◉</span>
+            <span class="strike-text">CENTER</span>
+            <span class="strike-hotkey">[W / ▲]</span>
+          </button>
+          <button id="btn-strike-right" class="btn-strike btn-right" aria-label="Strike Right (Right Arrow or D key)">
+            <span class="strike-icon">►</span>
+            <span class="strike-text">RIGHT</span>
+            <span class="strike-hotkey">[D / ►]</span>
+          </button>
+        </div>
+
+        <!-- Primary Action / Single-Switch Button -->
+        <div class="primary-action-container">
+          <button id="btn-primary-action" class="btn-primary-large" aria-label="Start Match or Next Round">
+            ▶ START MATCH (Space / Tap)
+          </button>
+        </div>
+      </section>
+    </main>
+
+    <!-- Settings & Accessibility Modal Drawer -->
+    <aside id="settings-panel" class="settings-drawer hidden" role="dialog" aria-labelledby="settings-heading" aria-modal="true">
+      <div class="settings-content">
+        <div class="settings-header">
+          <h2 id="settings-heading">Accessibility & Game Settings</h2>
+          <button id="btn-close-settings" class="btn-icon" aria-label="Close Settings">✕</button>
+        </div>
+
+        <div class="settings-grid">
+          <!-- Sensory & Screen Reader options -->
+          <fieldset class="settings-group">
+            <legend>Audio & Speech (Blind / Low Vision)</legend>
+            <label class="setting-toggle">
+              <input type="checkbox" id="toggle-tts" checked>
+              <span>Spoken Voice Announcements (TTS)</span>
+            </label>
+            <label class="setting-slider">
+              <span>Master Volume</span>
+              <input type="range" id="slider-volume" min="0" max="100" value="80">
+            </label>
+            <label class="setting-slider">
+              <span>Sound Effects Volume</span>
+              <input type="range" id="slider-sfx" min="0" max="100" value="80">
+            </label>
+          </fieldset>
+
+          <!-- Motor & Assistive Switch options -->
+          <fieldset class="settings-group">
+            <legend>Motor Accessibility & Switch Controls</legend>
+            <label class="setting-toggle">
+              <input type="checkbox" id="toggle-switch-mode">
+              <span>Single-Switch Scanning Mode (1-Button Play)</span>
+            </label>
+            <label class="setting-slider">
+              <span>Switch Scan Speed (ms per lane)</span>
+              <input type="range" id="slider-scan-speed" min="250" max="800" step="50" value="450">
+              <span id="scan-speed-label">450 ms</span>
+            </label>
+          </fieldset>
+
+          <!-- Visual Accessibility -->
+          <fieldset class="settings-group">
+            <legend>Visual & Motion (Deaf / Sensory)</legend>
+            <label class="setting-toggle">
+              <input type="checkbox" id="toggle-high-contrast">
+              <span>High Contrast Mode (WCAG AAA)</span>
+            </label>
+            <label class="setting-toggle">
+              <input type="checkbox" id="toggle-reduce-motion">
+              <span>Reduce Motion (Disable Screen Shake)</span>
+            </label>
+          </fieldset>
+
+          <!-- Gameplay Difficulty -->
+          <fieldset class="settings-group">
+            <legend>Difficulty & Rounds</legend>
+            <label class="setting-select">
+              <span>Rival AI Speed:</span>
+              <select id="select-difficulty">
+                <option value="EASY">Casual (Relaxed ~550ms reaction)</option>
+                <option value="MEDIUM" selected>Challenger (Standard ~380ms reaction)</option>
+                <option value="HARD">Master (Speed duel ~240ms reaction)</option>
+              </select>
+            </label>
+            <label class="setting-select">
+              <span>Match Length:</span>
+              <select id="select-match-length">
+                <option value="1">1 Round (Instant Showdown)</option>
+                <option value="3" selected>First to 3 Points</option>
+                <option value="5">First to 5 Points</option>
+              </select>
+            </label>
+          </fieldset>
+        </div>
+
+        <div class="settings-footer">
+          <button id="btn-save-settings" class="btn-primary">Done / Return to Game</button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Quick Keyboard & Instructions Help Bar -->
+    <footer class="app-footer">
+      <div class="instructions-inline" aria-label="Game Instructions">
+        <span class="guide-chip"><strong>How to Play:</strong> Wait for the tension beat. When the cue rings or flashes ◄ LEFT, ◉ CENTER, or ► RIGHT, strike that direction immediately!</span>
+        <span class="guide-chip"><strong>Keys:</strong> [A / ←] Left | [W / ↑] Center | [D / →] Right | [Space / Enter] Action</span>
+      </div>
+    </footer>
+  </div>
+
+  <!-- Landing Page Screen Overlay (Name Input, Mic, Sound Test, Mode Selection) -->
+  <div id="landing-screen" class="landing-overlay" role="dialog" aria-modal="true" aria-labelledby="landing-title">
+    <div class="landing-card">
+      <div class="landing-header">
+        <div class="landing-character-badge">
+          <img src="assets/jack_player_thumb.png" alt="Jack-Jack Super-Baby" class="landing-avatar-hero">
+        </div>
+        <h1 id="landing-title" class="landing-title">ECHO DUEL</h1>
+        <p class="landing-subtitle">Jack-Jack Super-Baby Reaction Showdown</p>
+      </div>
+
+      <!-- Section 1: Player Name Input with Mic & Presets -->
+      <div class="landing-section">
+        <label for="player-name-input" class="landing-label">
+          <span>Enter Your Duelist Name:</span>
+          <span class="accessible-tag">Mic & Keyboard Enabled</span>
+        </label>
+        <div class="input-mic-group">
+          <input 
+            type="text" 
+            id="player-name-input" 
+            class="player-name-input" 
+            placeholder="Jack-Jack" 
+            value="Jack-Jack"
+            maxlength="16" 
+            aria-describedby="mic-status-badge"
+            autocomplete="off"
+          />
+          <button id="btn-mic-name" class="btn-mic" type="button" aria-label="Speak your name using microphone" title="Speak name with Microphone">
+            <span class="mic-icon" aria-hidden="true">🎙️</span>
+            <span class="mic-text" id="mic-btn-label">Speak</span>
+          </button>
+        </div>
+        <div id="mic-status-badge" class="mic-status-badge" aria-live="polite">
+          <span class="status-indicator"></span>
+          <span id="mic-feedback-text">Mic option ready. Click Speak or type your name.</span>
+        </div>
+        <div class="avatar-tags" aria-label="Quick Name Presets">
+          <span class="preset-label">Hero Names:</span>
+          <button type="button" class="btn-tag" data-name="Jack-Jack">Jack-Jack</button>
+          <button type="button" class="btn-tag" data-name="LaserBaby">LaserBaby</button>
+          <button type="button" class="btn-tag" data-name="Incredible">Incredible</button>
+          <button type="button" class="btn-tag" data-name="FireBoy">FireBoy</button>
+        </div>
+      </div>
+
+      <!-- Section 2: Audio & Visual Sensory Check (Blind & Deaf Parity) -->
+      <div class="landing-section audio-check-section">
+        <div class="section-row-header">
+          <label class="landing-label">Sensory Sound & Visual Check:</label>
+          <span class="accessible-tag">Stereo Panning & Live Captions</span>
+        </div>
+        <p class="section-help-text">Plays Left, Center, and Right spatial audio tones paired with synchronous visual captions.</p>
+        <div class="sound-test-row">
+          <button type="button" id="btn-sound-test" class="btn-sound-test">
+            <span class="btn-icon-test">🔊</span> Test Spatial Audio & Visuals
+          </button>
+          <div id="sound-test-indicator" class="sound-test-indicator" aria-live="assertive">
+            <span class="caption-chip" id="sound-test-caption">Audio ready. Press to test.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Section 3: Difficulty Mode Selection (Easy, Medium, Tough) -->
+      <div class="landing-section">
+        <label class="landing-label">Select Difficulty Mode:</label>
+        <div class="mode-selection-grid" role="radiogroup" aria-label="Difficulty Mode">
+          <button type="button" id="btn-mode-easy" class="mode-card" data-mode="EASY" role="radio" aria-checked="false">
+            <div class="mode-badge badge-easy">🟢 EASY</div>
+            <div class="mode-desc">Casual (~550ms reaction window, 20% AI miss rate)</div>
+          </button>
+          <button type="button" id="btn-mode-medium" class="mode-card selected" data-mode="MEDIUM" role="radio" aria-checked="true">
+            <div class="mode-badge badge-medium">🟡 MEDIUM</div>
+            <div class="mode-desc">Standard (~380ms reaction window, 10% AI miss rate)</div>
+          </button>
+          <button type="button" id="btn-mode-tough" class="mode-card" data-mode="HARD" role="radio" aria-checked="false">
+            <div class="mode-badge badge-tough">🔴 TOUGH</div>
+            <div class="mode-desc">Master (~240ms reaction window, 4% AI miss rate)</div>
+          </button>
+        </div>
+      </div>
+
+      <!-- Landing Actions -->
+      <div class="landing-actions">
+        <button type="button" id="btn-enter-arena" class="btn-primary-large btn-enter-duel">
+          ⚡ ENTER ARENA & DUEL
+        </button>
+        <button type="button" id="btn-open-leaderboard" class="btn-secondary btn-points-modal">
+          🏆 View Points Table
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Points Table / Leaderboard Modal -->
+  <div id="leaderboard-modal" class="modal-overlay hidden" role="dialog" aria-modal="true" aria-labelledby="leaderboard-heading">
+    <div class="modal-card leaderboard-card">
+      <div class="modal-header">
+        <h2 id="leaderboard-heading">🏆 Duelists Points Table</h2>
+        <button id="btn-close-leaderboard" class="btn-icon" aria-label="Close Points Table">✕</button>
+      </div>
+      <div class="leaderboard-filters">
+        <span class="filter-label">Filter:</span>
+        <button type="button" class="btn-filter active" data-filter="ALL">All Modes</button>
+        <button type="button" class="btn-filter" data-filter="TOUGH">🔴 Tough</button>
+        <button type="button" class="btn-filter" data-filter="MEDIUM">🟡 Medium</button>
+        <button type="button" class="btn-filter" data-filter="EASY">🟢 Easy</button>
+      </div>
+      <div class="table-responsive">
+        <table class="points-table" aria-label="Player Rankings">
+          <thead>
+            <tr>
+              <th scope="col">Rank</th>
+              <th scope="col">Duelist</th>
+              <th scope="col">Mode</th>
+              <th scope="col">Points</th>
+              <th scope="col">Best Speed</th>
+              <th scope="col">Result</th>
+              <th scope="col">Date</th>
+            </tr>
+          </thead>
+          <tbody id="leaderboard-tbody">
+            <!-- Populated dynamically by JavaScript -->
+          </tbody>
+        </table>
+      </div>
+      <div class="modal-footer leaderboard-footer">
+        <button type="button" id="btn-clear-leaderboard" class="btn-danger-outline">Clear Records</button>
+        <button type="button" id="btn-close-leaderboard-bottom" class="btn-primary">Done / Back to Game</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Screen reader announcer region -->
+  <div id="aria-game-announcer" class="sr-only" aria-live="assertive" aria-atomic="true"></div>
+
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
